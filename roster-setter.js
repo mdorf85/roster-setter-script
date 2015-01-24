@@ -25,7 +25,7 @@ s.type = "text/javascript";
 s.src = "http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js";
 document.getElementsByTagName('head')[0].appendChild(s)
 
-setTimeout(doTheMagic, 5000); //gives jQuery time to load
+setTimeout(doTheMagic, 2000); //gives jQuery time to load
 
 function doTheMagic(){
   console.log("jQuery loaded!");
@@ -40,6 +40,9 @@ function doTheMagic(){
 
   function buildBenchers(){
     var benchers = [].slice.call( $(".bench") );
+    if ([].slice.call( $(".empty-bench") ) ) {
+      benchers = benchers.diff([].slice.call( $(".empty-bench") ) );
+    }
     // $(".empty-bench").remove();
     benchers.pop();
     return benchers;
@@ -47,7 +50,7 @@ function doTheMagic(){
 
   function buildStarters(benchers){
     var starters = [].slice.call( document.getElementsByClassName("editable") ).diff(benchers);
-    //starters.pop(); // removes false final starter in DOM
+    starters.pop(); // removes false final starter in DOM
     return starters;
   }
 
@@ -60,20 +63,22 @@ function doTheMagic(){
     return inactiveStarters;
   }
 
-  function benchInactiveStarters(inactiveStarters){
+  function benchInactiveStarters(starters, inactiveStarters){
     if (inactiveStarters.length > 0){
       for (var i = 0; i < inactiveStarters.length; i++) {
-        $currStarter = $(starters[inactiveStarters[i]]);
+        $currStarter = $(starters[inactiveStarters[i]]); //WHERE IS THIS starters COMING FROM!?!?!
         $currStarter.click(); // swap begun
         $(".empty-bench").click(); // swap complete
       }
-    return false;
-    } else{return true}
+    }
+    return true;
   }
 
   function buildActiveBenchers(benchers){
+    // debugger;
     var activeBenchers = [];
     for (var i = 0; i < benchers.length; i++) {
+      // debugger;
       if (benchers[i].children[4].childNodes[0].children.length !== 0) {activeBenchers.push(i)}
     }
     return activeBenchers;
@@ -95,20 +100,21 @@ function doTheMagic(){
   }
 
   $("#dnd").click() //ensures swap mode
-
+  var loops = 0;
   while (rosterDone === false) {
+    loops++;
 
     var benchers = buildBenchers();
     var starters = buildStarters(benchers);
 
-    if (benchers.length === 0) { break }
+    if (benchers.length === 0) { break };
 
     var inactiveStarters = buildInactiveStarters(starters);
-    benchersDone = benchInactiveStarters(inactiveStarters);
+    benchersDone = benchInactiveStarters(starters, inactiveStarters);
+    // debugger;
 
-    debugger;
-    
     benchers = buildBenchers();
+
     var activeBenchers = buildActiveBenchers(benchers);
     startersDone = startActiveBenchers(activeBenchers);
 
@@ -119,9 +125,14 @@ function doTheMagic(){
     starters = [];
 
     rosterDone = startersDone && benchersDone;
+    if (loops > 29) { break }; // fail-safe
   }
+  $(".roster-save-btn").click(); // why not?
 }
 
+// TODO: bench injured players
+// TODO: if both utility spots are full and there is an empty spot anywhere else then look to see if utility player can be moved there and if so reiterate
+// PROBLEM: STILL NOT BENCHING ALL INACTIVE STARTERS ON ONE SHOT...
 
 // // looking for injury
 // for (var i = 0; i < rubioChildren.length; i++){
