@@ -20,94 +20,107 @@
 // 5) Click Save Changes.
 
 //LOAD jQuery !!!
+var s = document.createElement("script");
+s.type = "text/javascript";
+s.src = "http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js";
+document.getElementsByTagName('head')[0].appendChild(s)
 
-var rosterDone = false;
-var startersDone, benchersDone;
+setTimeout(doTheMagic, 5000); //gives jQuery time to load
 
-// add diff method for array subtraction:
-Array.prototype.diff = function(a) {
-  return this.filter(function(i) {return a.indexOf(i) < 0;});
-};
+function doTheMagic(){
+  console.log("jQuery loaded!");
 
-function buildBenchers(){
-  var benchers = [].slice.call( document.getElementsByClassName("bench") ); // gets HTMLCollection, converts to array
-  var falseBenchers = [].slice.call( document.getElementsByClassName("empty-bench") );
-  benchers.diff(falseBenchers); //removes hidden bench elements
-  return benchers;
-}
+  var rosterDone = false;
+  var startersDone, benchersDone;
 
-function buildStarters(){
-  var starters = [].slice.call( document.getElementsByClassName("editable") ).diff(benchers);
-  starters.pop(); // removes false final starter in DOM
-  return starters;
-}
+  // add diff method for array subtraction:
+  Array.prototype.diff = function(a) {
+    return this.filter(function(i) {return a.indexOf(i) < 0;});
+  };
 
-function buildInactiveStarters(starters){
-  var inactiveStarters = [];
-  for (var i = 0; i < starters.length; i++) {
-    if (starters[i].className.indexOf("empty") === -1 && starters[i].children[4].childNodes[0].children.length === 0) {inactiveStarters.push(i)}
+  function buildBenchers(){
+    var benchers = [].slice.call( $(".bench") );
+    // $(".empty-bench").remove();
+    benchers.pop();
+    return benchers;
   }
-  return inactiveStarters;
-}
 
-function benchInactiveStarters(inactiveStarters){
-  if (inactiveStarters.length > 0){
-    for (var i = 0; i < inactiveStarters.length; i++) {
-      $currStarter = $(starters[inactiveStarters[i]]);
-      $currStarter.click(); // swap begun
-      $(".empty-bench").click(); // swap complete
+  function buildStarters(benchers){
+    var starters = [].slice.call( document.getElementsByClassName("editable") ).diff(benchers);
+    //starters.pop(); // removes false final starter in DOM
+    return starters;
+  }
+
+  //PROBLEM: IT'S ADDING TO ARRAY THE INDICES OF ALL PLAYERS, NOT JUST STARTERS
+  function buildInactiveStarters(starters){
+    var inactiveStarters = [];
+    for (var i = 0; i < starters.length; i++) {
+      if (starters[i].className.indexOf("empty") === -1 && starters[i].children[4].childNodes[0].children.length === 0) {inactiveStarters.push(i)}
     }
-  return false;
-  } else{return true}
-}
-
-function buildActiveBenchers(benchers){
-  var activeBenchers = [];
-  for (var i = 0; i < benchers.length; i++) {
-    if (benchers[i].children[4].childNodes[0].children.length !== 0) {activeBenchers.push(i)}
+    return inactiveStarters;
   }
-  return activeBenchers;
-}
 
-function startActiveBenchers(activeBenchers){
-  if (activeBenchers.length > 0) {
-    for (var i = 0; i < activeBenchers.length; i++){ // will iterate through all active benchers
-      $currBencher = $(benchers[activeBenchers[i]]);
-      $currBencher.click();
-      // alert("On " + $currBencher.find("a")[2].text); // for testing
-      $swappables = $(".swaptarget");
-      for (var j = 0; j < $swappables.length; j++){
-         if ($swappables[j].className.indexOf("empty") > -1){$swappables[j].click()}
+  function benchInactiveStarters(inactiveStarters){
+    if (inactiveStarters.length > 0){
+      for (var i = 0; i < inactiveStarters.length; i++) {
+        $currStarter = $(starters[inactiveStarters[i]]);
+        $currStarter.click(); // swap begun
+        $(".empty-bench").click(); // swap complete
       }
-    }
     return false;
-  } else {return true}
+    } else{return true}
+  }
+
+  function buildActiveBenchers(benchers){
+    var activeBenchers = [];
+    for (var i = 0; i < benchers.length; i++) {
+      if (benchers[i].children[4].childNodes[0].children.length !== 0) {activeBenchers.push(i)}
+    }
+    return activeBenchers;
+  }
+
+  function startActiveBenchers(activeBenchers){
+    if (activeBenchers.length > 0) {
+      for (var i = 0; i < activeBenchers.length; i++){ // will iterate through all active benchers
+        $currBencher = $(benchers[activeBenchers[i]]);
+        $currBencher.click();
+        // alert("On " + $currBencher.find("a")[2].text); // for testing
+        $swappables = $(".swaptarget");
+        for (var j = 0; j < $swappables.length; j++){
+           if ($swappables[j].className.indexOf("empty") > -1){$swappables[j].click()}
+        }
+      }
+      return false;
+    } else {return true}
+  }
+
+  $("#dnd").click() //ensures swap mode
+
+  while (rosterDone === false) {
+
+    var benchers = buildBenchers();
+    var starters = buildStarters(benchers);
+
+    if (benchers.length === 0) { break }
+
+    var inactiveStarters = buildInactiveStarters(starters);
+    benchersDone = benchInactiveStarters(inactiveStarters);
+
+    debugger;
+    
+    benchers = buildBenchers();
+    var activeBenchers = buildActiveBenchers(benchers);
+    startersDone = startActiveBenchers(activeBenchers);
+
+    activeBenchers = [];
+    inactiveStarters = [];
+
+    benchers = [];
+    starters = [];
+
+    rosterDone = startersDone && benchersDone;
+  }
 }
-
-$("#dnd").click() //ensures swap mode
-
-while (rosterDone === false) {
-
-  var benchers = buildBenchers();
-  var starters = buildStarters();
-
-  if (benchers.length === 0) { break }
-
-  var inactiveStarters = buildInactiveStarters(starters);
-  benchersDone = benchInactiveStarters(inactiveStarters);
-
-  var activeBenchers = buildActiveBenchers(benchers);
-  startersDone = startActiveBenchers(activeBenchers);
-
-  activeBenchers = [];
-  inactiveStarters = [];
-
-  benchers = [];
-  starters = [];
-
-  rosterDone = startersDone && benchersDone;
-}
-
 
 
 // // looking for injury
