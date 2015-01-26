@@ -66,9 +66,11 @@ function doTheMagic(){
   function benchInactiveStarters(starters, inactiveStarters){
     if (inactiveStarters.length > 0){
       for (var i = 0; i < inactiveStarters.length; i++) {
-        $currStarter = $(starters[inactiveStarters[i]]); //WHERE IS THIS starters COMING FROM!?!?!
+        $currStarter = $(starters[inactiveStarters[i]]);
+        // debugger;
         $currStarter.click(); // swap begun
         $(".empty-bench").click(); // swap complete
+        // debugger;
       }
     }
     return true;
@@ -101,6 +103,7 @@ function doTheMagic(){
 
   $("#dnd").click() //ensures swap mode
   var loops = 0;
+  
   while (rosterDone === false) {
     loops++;
 
@@ -127,7 +130,7 @@ function doTheMagic(){
     rosterDone = startersDone && benchersDone;
     if (loops > 29) { break }; // fail-safe
   }
-  $(".roster-save-btn").click(); // why not?
+  if ($("#top-rostersave-msg").text() !== "All changes saved") {$(".roster-save-btn").click()}
 }
 
 // TODO: bench injured players
